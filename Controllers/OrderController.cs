@@ -1,5 +1,6 @@
 ﻿using CLDV_Ecommerce.Data;
 using CLDV_Ecommerce.Models;
+using CLDV_Ecommerce.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +11,15 @@ namespace CLDV_Ecommerce.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IEventPublisher _eventPublisher;
 
-        public OrderController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+
+
+        public OrderController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IEventPublisher eventPublisher)
         {
             _context = context;
             _userManager = userManager;
+            _eventPublisher = eventPublisher;
         }
 
         public async Task<IActionResult> Checkout()
@@ -47,6 +52,15 @@ namespace CLDV_Ecommerce.Controllers
             _context.Orders.Add(order);
             _context.CartItems.RemoveRange(cartItems);
             await _context.SaveChangesAsync();
+
+            // Publish OrderPlaced event to Azure Queue
+            await _eventPublisher.PublishAsync("OrderPlaced", new
+            {
+                order.Id,
+                order.UserId,
+                order.TotalAmount,
+                order.OrderDate
+            });
 
             return RedirectToAction("Confirmation", new { id = order.Id });
         }
