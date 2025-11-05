@@ -1,4 +1,5 @@
 using CLDV_Ecommerce.Data;
+using CLDV_Ecommerce.Services;
 using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,14 @@ namespace CLDV_Ecommerce
             var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ?? throw new InvalidOperationException("Environment variable 'DB_CONNECTION_STRING' not found."); builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+            // Load Queue connection
+            var queueConnectionString = Environment.GetEnvironmentVariable("QueueConnectionString")
+                ?? throw new InvalidOperationException("Environment variable 'QUEUE_CONNECTION_STRING' not found.");
+            builder.Services.AddSingleton<IEventPublisher>(sp =>
+                new AzureQueueEventPublisher(queueConnectionString));
+
+
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
