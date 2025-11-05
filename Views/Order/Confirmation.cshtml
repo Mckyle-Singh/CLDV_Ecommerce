@@ -1,0 +1,29 @@
+﻿@model Order
+
+<h2>Order Confirmation</h2>
+<p>Order ID: @Model.Id</p>
+<p>Date: @Model.OrderDate.ToShortDateString()</p>
+<p>Total: @Model.TotalAmount.ToString("C")</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Unit Price</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.Product.Name</td>
+                <td>@item.UnitPrice.ToString("C")</td>
+                <td>@item.Quantity</td>
+                <td>@(item.UnitPrice* item.Quantity).ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
